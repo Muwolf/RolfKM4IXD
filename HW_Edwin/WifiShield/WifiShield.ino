@@ -1,8 +1,8 @@
 
 #include <SoftwareSerial.h>
 #include <SparkFunESP8266WiFi.h>
-#define NETWORK_NAME "ziggo7D511"
-#define NETWORK_PASSWORD "h4stUr07"
+#define NETWORK_NAME "network"
+#define NETWORK_PASSWORD "password"
 
 void setup() {
 
