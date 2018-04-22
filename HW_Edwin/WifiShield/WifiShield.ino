@@ -24,19 +24,14 @@ void setup() {
   if (result < 0) {
     Serial.print("ERROR connecting: ");
     Serial.print(result);
-    // while(1);
+    while (1);
   }
 
-  if (result > 0) {
-    IPAddress myIP = esp8266.localIP();
-    Serial.print("My IP: ");
-    Serial.println(myIP);
+  IPAddress myIP = esp8266.localIP();
+  Serial.print("My IP: ");
+  Serial.println(myIP);
 
-    int wifiConnected = esp8266.status();
-  }
-
-
-
+  int wifiConnected = esp8266.status();
 }
 
 void loop() {
