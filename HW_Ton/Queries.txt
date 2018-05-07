@@ -1,3 +1,4 @@
+Opdracht 3:
 Alle gemeten temperaturen onder de 10 graden
 	SELECT * FROM `thing` WHERE temperature < 10
 Alle temperaturen gemeten door het thing met id 3
@@ -8,4 +9,7 @@ De maximum gemeten temperatuur (ga googlen om de statement te vinden om in 1 kee
 	SELECT MAX(temperature) FROM `thing` WHERE 1
 De maximum gemeten temperatuur door het thing met id 3
 	SELECT MAX(temperature) FROM `thing` WHERE thing_id = 3
+
+Opdracht 5: 
+"INSERT INTO things (id, thing_id, user_id, time, temperature) VALUES  (NULL, $thing_id, $user_id, NOW(), $temp);"
 
