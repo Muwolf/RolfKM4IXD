@@ -45,5 +45,5 @@ void loop() {
       client.stop();
     }
   }
-  delay(4000);
+  delay(500);
 }
