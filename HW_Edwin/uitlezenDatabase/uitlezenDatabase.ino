@@ -8,11 +8,13 @@
 #define NETWORK_PASSWORD "fwxp3871"
 #define HOST "studenthome.hku.nl"
 
-volatile int day = 0;
-volatile int hrs = 0;
-volatile int mins = 0;
-volatile int sec = 0;
-volatile int loc = 0;
+int day = 0;
+int hrs = 0;
+int mins = 0;
+int sec = 0;
+int loc = 0;
+
+volatile bool button = false; 
 
 Adafruit_7segment matrix = Adafruit_7segment();
 bool blinkColon = true;
@@ -26,7 +28,7 @@ String getBodypart(const String& response, const String& unit) {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   setupESP8266();
   matrix.begin(0x70);
   pinMode(2, INPUT_PULLUP);
@@ -59,35 +61,39 @@ void loop() {
       matrix.print((mins * 100) + sec, DEC);
     }
 
-    if (blinkColon) {
-      blinkColon = false;
-    } else {
-      blinkColon = true;
-    }
+    blinkColon != blinkColon;
     matrix.drawColon(blinkColon);
-    delay(200);
-
-
+    
   } else {
     Serial.println(result);
     matrix.print(0xDEAD, HEX);
   }
+  
   matrix.writeDisplay();
+
+  if (button) {
+    Serial.print("Sending leaving Time: "); 
+    int leavingtime = ((day * 86400) + (hrs * 3600) + (mins * 60) + sec);
+    String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id=";
+    url += loc;
+    url += "&timepast=";
+    url += leavingtime;
+    String response;
+    Serial.println(url); 
+    int result = sendRequest(HOST, url, response);
+    if (result == 1) {
+      Serial.println("Succes!");
+    } else {
+      Serial.print("Sending failed: "); 
+      Serial.println(result);
+    }
+    button = false; 
+  }
+  delay(200);
 }
 
 void leavingISR() {
-  String response;
-  int leavingtime = ((day * 86400) + (hrs * 3600) + (mins * 60) + sec);
-  String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id=";
-  url += loc; 
-  url += "&timepast=";
-  url += leavingtime;  
-  int result = sendRequest(HOST, url, response);
-  if (result == 1) {
-    digitalWrite(LED_BUILTIN, HIGH);
-  } else {
-    digitalWrite(LED_BUILTIN, LOW);
-  }
+  button = true; 
 }
 
 
