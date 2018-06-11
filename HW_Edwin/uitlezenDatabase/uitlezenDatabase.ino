@@ -30,7 +30,7 @@ void setup() {
   setupESP8266();
   matrix.begin(0x70);
   pinMode(2, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(2), leavingISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(2), leavingISR, CHANGE);
 }
 
 void loop() {
@@ -75,11 +75,22 @@ void loop() {
 
 void leavingISR() {
 
-  int leavingtime = ((day * 86400) + (hrs * 3600) + (mins * 60) + sec);
-  String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id=" + getBodypart(response, "loc: "), "&timepast=", String(leavingtime));
-  Serial.println(String(url));
+  Serial.println("interupted!"); 
+  String response; 
 
-  //int result = sendRequest(HOST, "/~rolf.jurgens/Jaar2IXD/Kernmodule/blok4/eindopdracht/wegschrijvenVertrektijd.php?location_id=" + loc + "&timepast=" + leavingtime, response);
+  int leavingtime = ((day * 86400) + (hrs * 3600) + (mins * 60) + sec);
+  String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id=" + loc;
+  url += "&timepast=";
+  url += leavingtime;
+
+  int result = sendRequest(HOST, url, response);
+  if (result == 1) {
+    Serial.println(response); 
+  } else {
+    Serial.println(result);
+    matrix.print(0xBAD, HEX); 
+    matrix.writeDisplay(); 
+  }
 }
 
 
