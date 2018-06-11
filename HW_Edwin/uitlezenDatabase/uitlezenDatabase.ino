@@ -1,85 +1,86 @@
 #include <SoftwareSerial.h>
 #include <SparkFunESP8266WiFi.h>
-#include <Adafruit_NeoPixel.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
 
 #define NETWORK_NAME "AndroidAP"
 #define NETWORK_PASSWORD "fwxp3871"
-#define HOST "km4.mobidapt.com"
+#define HOST "studenthome.hku.nl"
 
-#define PIXELPIN 6
-#define NUMPIXELS 12
+int day = 0;
+int hrs = 0;
+int mins = 0;
+int sec = 0;
+int loc = 0;
 
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIXELPIN, NEO_GRB + NEO_KHZ800);
+Adafruit_7segment matrix = Adafruit_7segment();
+bool blinkColon = true;
 
-int delayval = 50;
-int red = 0;
-int green = 0;
-int blue = 0;
-
-
-void setColor() {
-  for (int i = 0; i < NUMPIXELS; i++) {
-    pixels.setPixelColor(i, pixels.Color(red, green, blue));
-  }
-  pixels.show();
+String getBodypart(const String& response, const String& unit) {
+  int bodyStart = response.indexOf(unit);
+  int bodyEnd = response.indexOf("<br>", bodyStart + 5);
+  String body = response.substring(bodyStart + 5, bodyEnd);
+  body.trim();
+  return body;
 }
 
-
 void setup() {
-  Serial.begin(9600);
-
+  Serial.begin(115200);
   setupESP8266();
-
-  pixels.begin();
-
-  for (int i = 0; i < NUMPIXELS; i++) {
-    pixels.setPixelColor(i, pixels.Color(0,0,0));
-    pixels.show();
-    delay(10);
-  }
-
+  matrix.begin(0x70);
+  pinMode(2, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(2), leavingISR, RISING);
 }
 
 void loop() {
   String response;
   int result;
 
-  result = sendRequest(HOST, "/sliders?userid=rolf&sliderid=slider1", response);
+  result = sendRequest(HOST, "/~rolf.jurgens/PMblok4IAD/uitlezenAgenda.php", response);
   if (result == 1) {
-    int slider1 = getBody(response).toInt();
-    Serial.print("Slider1 = ");
-    Serial.println(slider1);
-    red = map(slider1, 0, 1023, 0, 255);
-    setColor();
-  }
+    day = getBodypart(response, "day: ").toInt();
+    hrs = getBodypart(response, "hrs: ").toInt();
+    mins = getBodypart(response, "min: ").toInt();
+    sec = getBodypart(response, "sec: ").toInt();
+    loc = getBodypart(response, "loc: ").toInt();
 
-  result = sendRequest(HOST, "/sliders?userid=rolf&sliderid=slider2", response);
-  if (result == 1) {
-    int slider2 = getBody(response).toInt();
-    Serial.print("Slider2 = ");
-    Serial.println(slider2);
-    green = map(slider2, 0, 1023, 0, 255);
-    setColor();
-  }
+    if (day > 0) {
+      matrix.print((day * 100) + hrs, DEC);
+    } else if (hrs > 0) {
+      matrix.print((hrs * 100) + mins, DEC);
+    } else if (mins > 0) {
+      matrix.print((mins * 100) + sec, DEC);
+    } else if (sec > 0) {
+      matrix.print(sec, DEC);
+    } else {
+      matrix.print((mins * 100) + sec, DEC);
+    }
 
-  result = sendRequest(HOST, "/sliders?userid=rolf&sliderid=slider3", response);
-  if (result == 1) {
-    int slider3 = getBody(response).toInt();
-    Serial.print("Slider3 = ");
-    Serial.println(slider3);
-    blue = map(slider3, 0, 1023, 0, 255);
-    setColor();
+    if (blinkColon) {
+      blinkColon = false;
+    } else {
+      blinkColon = true;
+    }
+    matrix.drawColon(blinkColon);
+    delay(200);
+
+
+  } else {
+    Serial.println(result);
+    matrix.print(0xDEAD, HEX);
   }
-  
+  matrix.writeDisplay();
 }
 
-String getBody(const String& response) {
-  Serial.println(response); 
-  int bodyStart = response.indexOf("\r\n\r\n");
-  int bodyEnd = response.indexOf("\n", bodyStart + 4);
-  String body = response.substring(bodyStart + 4, bodyEnd);
-  body.trim();
-  return body;
+void leavingISR() {
+
+  int leavingtime = ((day * 86400) + (hrs * 3600) + (mins * 60) + sec);
+  String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id=" + getBodypart(response, "loc: "), "&timepast=", String(leavingtime));
+  Serial.println(String(url));
+
+  //int result = sendRequest(HOST, "/~rolf.jurgens/Jaar2IXD/Kernmodule/blok4/eindopdracht/wegschrijvenVertrektijd.php?location_id=" + loc + "&timepast=" + leavingtime, response);
 }
+
 
 
