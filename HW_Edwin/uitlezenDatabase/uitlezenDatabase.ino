@@ -14,7 +14,7 @@ int mins = 0;
 int sec = 0;
 int loc = 0;
 
-volatile bool button = false; 
+volatile bool button = false;
 
 Adafruit_7segment matrix = Adafruit_7segment();
 bool blinkColon = true;
@@ -63,37 +63,39 @@ void loop() {
 
     blinkColon != blinkColon;
     matrix.drawColon(blinkColon);
-    
+
   } else {
     Serial.println(result);
     matrix.print(0xDEAD, HEX);
   }
-  
+
   matrix.writeDisplay();
 
   if (button) {
-    Serial.print("Sending leaving Time: "); 
-    int leavingtime = ((day * 86400) + (hrs * 3600) + (mins * 60) + sec);
-    String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id=";
-    url += loc;
+    String SentResponse;
+    Serial.print("Sending leaving Time: ");
+    int leavingtime = ((day * 86400) + (hrs * 3600) + (mins * 60) + sec) * -1;
+
+    String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id=" + getBodypart(response, "loc: ").toInt();
     url += "&timepast=";
     url += leavingtime;
+
     String response;
-    Serial.println(url); 
-    int result = sendRequest(HOST, url, response);
+    Serial.println(url);
+    int result = sendRequest(HOST, url, SentResponse);
     if (result == 1) {
       Serial.println("Succes!");
     } else {
-      Serial.print("Sending failed: "); 
+      Serial.print("Sending failed: ");
       Serial.println(result);
     }
-    button = false; 
+    button = false;
   }
   delay(200);
 }
 
 void leavingISR() {
-  button = true; 
+  button = true;
 }
 
 
