@@ -76,11 +76,11 @@ void loop() {
     Serial.print("Sending leaving Time: ");
     int leavingtime = ((day * 86400) + (hrs * 3600) + (mins * 60) + sec) * -1;
 
-    String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id=" + getBodypart(response, "loc: ").toInt();
+    String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id="; 
+    url += loc;
     url += "&timepast=";
     url += leavingtime;
 
-    String response;
     Serial.println(url);
     int result = sendRequest(HOST, url, SentResponse);
     if (result == 1) {
