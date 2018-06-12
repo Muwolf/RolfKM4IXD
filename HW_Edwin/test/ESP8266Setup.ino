@@ -63,7 +63,7 @@ void setupESP8266(bool forceReconnect) {
   if (result > 0) {
     Serial.println(strbuffer);
   } else {
-    Serial.println(F("<UNKNOWN>"));
+    Serial.println("<UNKNOWN>");
   }
 
   IPAddress ip = esp8266.localIP();
@@ -75,7 +75,7 @@ void setupESP8266(bool forceReconnect) {
   if (result > 0) {
     Serial.println(strbuffer);
   } else {
-    Serial.println(F("<UNKNOWN>"));
+    Serial.println("<UNKNOWN>");
   }
 }
 
@@ -100,11 +100,8 @@ int sendRequest(const String& host, const String& request, String& response) {
     response.trim();
   }
 
-  if (client.connected()){
-    client.flush(); 
-    client.stop();
-  }
+  if (client.connected()) client.stop();
   delay(200); 
-  
+
   return result;
 }

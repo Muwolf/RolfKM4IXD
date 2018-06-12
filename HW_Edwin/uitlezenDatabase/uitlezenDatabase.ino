@@ -1,4 +1,3 @@
-#include <SoftwareSerial.h>
 #include <SparkFunESP8266WiFi.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -14,6 +13,10 @@ int mins = 0;
 int sec = 0;
 int loc = 0;
 
+String url;
+String SentResponse;
+String response;
+
 volatile bool button = false;
 
 Adafruit_7segment matrix = Adafruit_7segment();
@@ -21,7 +24,7 @@ bool blinkColon = true;
 
 String getBodypart(const String& response, const String& unit) {
   int bodyStart = response.indexOf(unit);
-  int bodyEnd = response.indexOf("<br>", bodyStart + 5);
+  int bodyEnd = response.indexOf(F("<br>"), bodyStart + 5);
   String body = response.substring(bodyStart + 5, bodyEnd);
   body.trim();
   return body;
@@ -34,20 +37,20 @@ void setup() {
   pinMode(2, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(2), leavingISR, CHANGE);
+  url.reserve(50);
 }
 
 void loop() {
-  String response;
-  int result;
-  digitalWrite(LED_BUILTIN, LOW);
 
-  result = sendRequest(HOST, "/~rolf.jurgens/PMblok4IAD/uitlezenAgenda.php", response);
+  int result;
+
+  result = sendRequest(HOST, F("/~rolf.jurgens/PMblok4IAD/uitlezenAgenda.php"), response);
   if (result == 1) {
-    day = getBodypart(response, "day: ").toInt();
-    hrs = getBodypart(response, "hrs: ").toInt();
-    mins = getBodypart(response, "min: ").toInt();
-    sec = getBodypart(response, "sec: ").toInt();
-    loc = getBodypart(response, "loc: ").toInt();
+    day = getBodypart(response, F("day: ")).toInt();
+    hrs = getBodypart(response, F("hrs: ")).toInt();
+    mins = getBodypart(response, F("min: ")).toInt();
+    sec = getBodypart(response, F("sec: ")).toInt();
+    loc = getBodypart(response, F("loc: ")).toInt();
 
     if (day > 0) {
       matrix.print((day * 100) + hrs, DEC);
@@ -61,36 +64,38 @@ void loop() {
       matrix.print((mins * 100) + sec, DEC);
     }
 
-    blinkColon != blinkColon;
+    if (blinkColon) {
+      blinkColon = false;
+    } else {
+      blinkColon = true;
+    }
     matrix.drawColon(blinkColon);
-
+    
   } else {
     Serial.println(result);
-    matrix.print(0xDEAD, HEX);
   }
 
   matrix.writeDisplay();
 
   if (button) {
-    String SentResponse;
-    Serial.print("Sending leaving Time: ");
+    Serial.print(F("Sending leaving Time: "));
     int leavingtime = ((day * 86400) + (hrs * 3600) + (mins * 60) + sec) * -1;
 
-    String url = "/~rolf.jurgens/PMblok4IAD/vt.php?location_id=" + getBodypart(response, "loc: ");
-    url += "&timepast=";
+    url += F("/~rolf.jurgens/PMblok4IAD/vt.php?l_id=");
+    url += loc;
+    url += F("&lt=");
     url += leavingtime;
-
-    Serial.println(url);
     int result = sendRequest(HOST, url, SentResponse);
     if (result == 1) {
-      Serial.println("Succes!");
+      Serial.println(F("Succes!"));
+      url = F("");
     } else {
-      Serial.print("Sending failed: ");
-      Serial.println(result);
+      Serial.print(F("Sending failed!"));
+      url = F("");
     }
     button = false;
   }
-  delay(200);
+  Serial.flush(); 
 }
 
 void leavingISR() {
