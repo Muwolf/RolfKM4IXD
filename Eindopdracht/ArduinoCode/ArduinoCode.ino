@@ -3,8 +3,8 @@
 #include <Adafruit_GFX.h>
 #include "Adafruit_LEDBackpack.h"
 
-#define NETWORK_NAME "AndroidAP"
-#define NETWORK_PASSWORD "fwxp3871"
+#define NETWORK_NAME "Hier_netwerk_naam"
+#define NETWORK_PASSWORD "Hier_staat_een_wachtwoord"
 #define HOST "studenthome.hku.nl"
 
 int day = 0;
