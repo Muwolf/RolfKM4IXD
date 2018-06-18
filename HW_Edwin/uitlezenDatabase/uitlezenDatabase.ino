@@ -46,6 +46,7 @@ void loop() {
 
   result = sendRequest(HOST, F("/~rolf.jurgens/PMblok4IAD/uitlezenAgenda.php"), response);
   if (result == 1) {
+   
     day = getBodypart(response, F("day: ")).toInt();
     hrs = getBodypart(response, F("hrs: ")).toInt();
     mins = getBodypart(response, F("min: ")).toInt();
@@ -70,7 +71,7 @@ void loop() {
       blinkColon = true;
     }
     matrix.drawColon(blinkColon);
-    
+
   } else {
     Serial.println(result);
   }
@@ -95,12 +96,9 @@ void loop() {
     }
     button = false;
   }
-  Serial.flush(); 
+  Serial.flush();
 }
 
 void leavingISR() {
   button = true;
 }
-
-
-
